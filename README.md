@@ -6,6 +6,7 @@
 |---|---|
 | [`init-new-coding-project`](#init-new-coding-project) | Sets up a project so its state lives in the repo, not in chat history |
 | [`test-user`](#test-user) | Tests your app as a real user in Chrome: sign-up, sign-in, email verification, Google sign-in, with JSON results |
+| [`ux-review`](#ux-review) | Brutal UX review of a live app: 15 categories, pass/fail and scores, copy rewrites, action items by severity |
 
 ## `init-new-coding-project`
 
@@ -103,6 +104,48 @@ claude --chrome -p "/test-user scenarios=... hosts=... config=... trigger=agent"
 ```
 
 It needs your Chrome running with the extension connected, so it runs on your machine, not on a CI server.
+
+## `ux-review`
+
+### The problem it solves
+
+Most UX checklists are polite. They tick off heuristics and miss what makes software feel unfinished: the flow that takes nine clicks instead of three, the "Oops! Something went wrong", the landing page that could belong to any product, the copy that reads like an AI wrote it. This skill holds an app to the bar of software people love, and is blunt about everything below it.
+
+### What it does
+
+`/ux-review app=<url> env=<local|dev|staging|prod>` drives the real app in Chrome like a first-time user, then writes a report.
+
+1. **Cold open.** Records the first impression before learning anything: what the product seems to be, who it's for, what to click.
+2. **Walks the core tasks** as the persona, counting steps, clicks and waits, and then breaks them: bad input, double submits, Back, refresh, empty and huge data.
+3. **Sweeps every screen** against 15 categories: first impression, onboarding, navigation, task flows, copy, visual design, feedback, errors, forms, speed, mobile, accessibility (WCAG 2.2 AA), craft, trust, and an AI-slop check.
+4. **Measures** Core Web Vitals, contrast, labels, tap targets and focus with built-in browser probes, plus a mobile pass and a keyboard-only pass.
+5. **Judges**: every finding has evidence, a severity (Critical / High / Medium / Low) and a concrete fix. Every copy problem comes with a rewrite.
+
+| Output | Holds |
+|---|---|
+| `report.md` | Verdict (Not ready / Fix first / Ship it), a score out of 100, a 0-10 score and pass/fail per category, top 5 fixes, task walkthroughs, findings, a copy-rewrite table, action items by severity, measurements |
+| `findings.json` | The same findings in a fixed shape, so the next run reports what was fixed, what's still open and what regressed |
+| `shots/` | Screenshots used as evidence |
+
+A category passes only with a score of 8 or more and no Critical or High findings. Pass means ship-grade, not "acceptable".
+
+### Safe by default
+
+- Only the app's own host is opened; other links are recorded, not followed.
+- On `prod` it only observes: no sign-ups, purchases, messages or deletes.
+- Test data it creates elsewhere is named `UXR <runId>` and cleaned up.
+- Credentials come from a local env file and are never echoed. It never types a Google, Apple or Microsoft password.
+- It reviews and never changes the app.
+
+### Run
+
+It needs [Claude in Chrome](https://claude.ai/chrome) connected. To review screens behind sign-in, copy `references/config.example.env` to a private place outside your repos, fill in a test account and pass `config=<path>`. Add `ux-review/` to `.gitignore`: screenshots can contain private data.
+
+```
+/ux-review app=https://staging.example.com env=staging persona="small-shop owner, first visit" tasks="sign up; add first product"
+```
+
+Optional: `depth=quick` for a short pass, `scope=` to focus on some areas, `repo=<path>` to also review error and empty-state copy it couldn't trigger.
 
 ## Install
 
