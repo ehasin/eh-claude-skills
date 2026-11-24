@@ -6,7 +6,7 @@
 |---|---|
 | [`init-new-coding-project`](#init-new-coding-project) | Sets up a project so its state lives in the repo, not in chat history |
 | [`test-user`](#test-user) | Tests your app as a real user in Chrome: sign-up, sign-in, email verification, Google sign-in, with JSON results |
-| [`ux-review`](#ux-review) | Brutal UX review of a live app: 15 categories, pass/fail and scores, copy rewrites, action items by severity |
+| [`ux-review`](#ux-review) | Brutal UX review of a live app: 15 categories, pass/fail and scores, copy rewrites, a glossary, legal basics, action items by severity |
 
 ## `init-new-coding-project`
 
@@ -119,12 +119,15 @@ Most UX checklists are polite. They tick off heuristics and miss what makes soft
 2. **Walks the core tasks** as the persona, counting steps, clicks and waits, and then breaks them: bad input, double submits, Back, refresh, empty and huge data.
 3. **Sweeps every screen** against 15 categories: first impression, onboarding, navigation, task flows, copy, visual design, feedback, errors, forms, speed, mobile, accessibility (WCAG 2.2 AA), craft, trust, and an AI-slop check.
 4. **Measures** Core Web Vitals, contrast, labels, tap targets and focus with built-in browser probes, plus a mobile pass and a keyboard-only pass.
-5. **Judges**: every finding has evidence, a severity (Critical / High / Medium / Low) and a concrete fix. Every copy problem comes with a rewrite.
+5. **Reads every word.** It collects the text of every screen, including the labels only screen readers hear, and runs a delete test: if a screen can't be used without its instructions, the design is the problem. It flags flabby, hedging copy and AI slop, builds a glossary of the names each thing goes by, catches contradictions between screens, and proofreads in the page's language.
+6. **Checks the legal basics** for the market: imprint, privacy policy and terms present and reachable, and the privacy claims compared with the trackers, cookies and storage it actually sees, before consent and after Reject. Flagged for counsel, never certified.
+7. **Judges**: every finding has evidence, a severity (Critical / High / Medium / Low) and a concrete fix. Every copy problem comes with a rewrite.
 
 | Output | Holds |
 |---|---|
-| `report.md` | Verdict (Not ready / Fix first / Ship it), a score out of 100, a 0-10 score and pass/fail per category, top 5 fixes, task walkthroughs, findings, a copy-rewrite table, action items by severity, measurements |
+| `report.md` | Verdict (Not ready / Fix first / Ship it), a score out of 100, a 0-10 score and pass/fail per category, top 5 fixes, task walkthroughs, findings, a copy-rewrite table, a glossary, action items by severity, measurements (speed, text load, privacy) |
 | `findings.json` | The same findings in a fixed shape, so the next run reports what was fixed, what's still open and what regressed |
+| `strings.md` | Every string in the app, by screen: the inventory behind the copy findings |
 | `shots/` | Screenshots used as evidence |
 
 A category passes only with a score of 8 or more and no Critical or High findings. Pass means ship-grade, not "acceptable".
@@ -143,6 +146,12 @@ It needs [Claude in Chrome](https://claude.ai/chrome) connected. To review scree
 
 ```
 /ux-review app=https://staging.example.com env=staging persona="small-shop owner, first visit" tasks="sign up; add first product"
+```
+
+For a faster pass on the words and legal pages only:
+
+```
+/ux-review app=https://staging.example.com env=staging focus=copy
 ```
 
 Optional: `context="mobile-first; drag is the only intended input"` to tell it what's out of scope on purpose (such findings are still reported, but capped at Medium and kept out of the verdict), `depth=quick` for a short pass, `scope=` to focus on some areas, `repo=<path>` to also review error and empty-state copy it couldn't trigger.

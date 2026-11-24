@@ -94,7 +94,9 @@ Critical / High: a top task can't be completed (Critical); a top task takes twic
 
 Apply [copy-standard.md](copy-standard.md) in full. Every copy finding includes the exact current text and a rewrite.
 
-Critical / High: copy that misleads about price, data, consequences or consent (Critical); error messages that don't say what happened and how to fix it (High); AI-slop or marketing filler on the landing page or onboarding (High); jargon or internal terms in core flows (High).
+COPY also holds the cross-screen checks: text load (the delete test), punch, the glossary, contradictions and the proofread. All word and naming findings live here, even when the fix is a design change.
+
+Critical / High: copy that misleads about price, data, consequences or consent, or contradicts itself on them (Critical); a core screen or onboarding that can't be used without reading its instructions (High); two names for a core concept (High); copy that contradicts itself or the product's behaviour in a core flow (High); error messages that don't say what happened and how to fix it (High); AI-slop, marketing filler or flabby copy throughout the landing page, onboarding or a core flow (High); jargon or internal terms in core flows (High); a typo on the landing page or in a price (High).
 
 ## 6. VIS: Visual design and hierarchy
 
@@ -210,7 +212,7 @@ Critical / High: keyboard trap or core task impossible by keyboard (Critical); u
 
 *Does it feel like one product made by people who sweat the details?* [N4]
 
-- The same thing has the same name, icon, color and position everywhere.
+- The same thing has the same icon, color and position everywhere. (Names and wording are judged in COPY.)
 - Components behave the same everywhere (all modals close the same way, all tables sort the same way).
 - All interactive states are designed: hover, focus, active, disabled, loading, selected.
 - Details: favicon, page titles per screen, sensible 404, no placeholder or test content, dates and numbers formatted for the user's locale, plurals right ("1 items" is a finding), no broken images, no double scrollbars, no flash of unstyled content.
@@ -218,7 +220,7 @@ Critical / High: keyboard trap or core task impossible by keyboard (Critical); u
 - Native browser dialogs (`alert`, `confirm`) are not used.
 - Dark mode, if offered, is designed rather than inverted.
 
-Critical / High: placeholder, lorem ipsum or test data visible to users (High); inconsistent terminology for core concepts (High).
+Critical / High: placeholder, lorem ipsum or test data visible to users (High); the same control looking or behaving differently in core flows (High).
 
 ## 14. TRUST: Trust, respect and honesty
 
@@ -232,7 +234,15 @@ Critical / High: placeholder, lorem ipsum or test data visible to users (High); 
 - Notifications and emails are useful, rare and easy to turn off.
 - Signs of a real company: who's behind it, how to get help, working contact.
 
-Critical / High: hidden costs or deceptive consent (Critical); cancel or delete account harder than sign-up (High); permission prompt on first load (High).
+**Legal basics.** Infer the market from the language, domain, currency and imprint, and say which you assumed. Then check:
+
+- The legal pages that market expects exist and are reachable in one click from every screen (usually the footer): an imprint where required (Germany and Austria: name, postal address, email, and register or VAT details for companies), a privacy policy wherever data is collected (including analytics), terms where there are accounts or purchases, and withdrawal and cancellation information for EU purchases.
+- **Claims against behaviour.** Compare what the privacy policy and the consent banner say with what probe P8 observed: third-party hosts, cookies and storage before any consent, and again after choosing Reject. Every third party seen should be named in the policy.
+- Legal copy meets the copy standard's rules for legal pages: plain-language summary, same language as the UI, dated.
+
+Every legal finding is tagged `verify with counsel`. The review flags what looks missing or wrong; it never certifies compliance, and the report says so.
+
+Critical / High: hidden costs or deceptive consent (Critical); trackers or non-essential cookies set before consent or after Reject, or a policy claim ("we don't track you") that P8 contradicts (Critical); a required imprint, privacy policy or terms missing or incomplete (High); third parties seen but not named in the policy (High); cancel or delete account harder than sign-up (High); permission prompt on first load (High).
 
 ## 15. SLOP: Taste and originality
 
@@ -254,6 +264,7 @@ Signs of slop. Each one is at least a Medium finding, High when it's on the land
 **Copy** (see the slop list in [copy-standard.md](copy-standard.md))
 - Filler verbs: unlock, elevate, empower, supercharge, seamlessly, effortlessly.
 - "Not just X, it's Y", "Whether you're X or Y", triplets everywhere, em-dash chains.
+- Flab: hedges, filler and throat-clearing ("Here you can simply…"); see Punch in the copy standard.
 - Headlines that could be on any product's site.
 
 **Product**

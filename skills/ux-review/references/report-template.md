@@ -3,12 +3,13 @@
 Write `<out>/<runId>/report.md` in this shape. Keep it scannable: tables and short lines, no essays. Leave out a section only if it would be empty, and say so in one line.
 
 ```markdown
-# UX review: <product name>
+# <UX review | Copy review>: <product name>
 
 <app url> · <env> · <date, from the shell> · run <runId>
 Persona: <persona> (given | assumed)
 Tasks: <task 1>; <task 2>; <task 3> (given | assumed)
 Context: <owner's context, or "none given">
+Focus: <all | copy> · Language: <page language> · Market assumed: <e.g. Germany, from .de domain and imprint>
 Covered: <N> screens · desktop <actual viewport, CSS px, and DPR> · mobile <390×844 by resize | by frame (layout only)> · keyboard pass <yes/partial/no> · signed in <yes/no>
 Build: <commit and branch, if repo given>
 
@@ -53,7 +54,7 @@ Grouped by category, in framework order. Within a category, most severe first.
 - **Fix:** Say the job and the result: "Turn customer emails into tickets automatically."
 - **Effort:** S
 
-<Repeat for every finding. Tags after the severity where they apply: `inferred`, `source-only`, `dom-only` (read from the page's markup, state not reached), `owner-scope`, `verify on prod build`, `new`, `still open`, `regressed`.>
+<Repeat for every finding. Tags after the severity where they apply: `inferred`, `source-only`, `dom-only` (read from the page's markup, state not reached), `owner-scope`, `verify on prod build`, `verify with counsel`, `new`, `still open`, `regressed`.>
 
 ## Copy rewrites
 
@@ -62,6 +63,14 @@ Every copy problem found, in one table, so it can be handed straight to whoever 
 | ID | Where | Current | Problem | Rewrite |
 |---|---|---|---|---|
 | COPY-01 | Sign-up button | "Submit" | Doesn't say what happens | "Create account" |
+
+## Glossary
+
+Every core concept and the names it goes by. One name per concept; the "Use" column is the one to keep.
+
+| Concept | Names seen (where) | Use |
+|---|---|---|
+| The thing users create | project (dashboard), workspace (settings), board (emails) | project |
 
 ## Action items
 
@@ -85,6 +94,14 @@ Checklist by severity. Each line: fix, ID, effort.
 |---|---|---|---|---|---|---|
 | / | 210 ms | 1.9 s | 0.02 | 90 ms | 42 | 1.2 MB |
 
+Text load (P7), screens with the most explanation first:
+
+| Screen | Explanatory words | Long blocks | Sentences > 20 words | Fails delete test |
+|---|---|---|---|---|
+| /onboarding | 120 | 2 | 3 | yes (COPY-03) |
+
+Privacy (P8): third parties before consent <list> · after Reject <list> · cookies and storage set before consent <names> · named in the privacy policy <yes / which are missing>.
+
 Accessibility probe summary: <contrast failures, unnamed controls, unlabeled fields, small targets, per screen, short>.
 Console errors: <count and the worst, short>. Failed requests: <count and the worst, short>.
 
@@ -100,6 +117,8 @@ Only if a previous run was loaded: <fixed N · still open N · regressed N · ne
 
 - Not tested: <areas and why: read-only env, behind sign-in, blocked by captcha, out of depth limit>
 - No screen-reader pass was done (unless one was).
+- Legal findings flag what looks missing or wrong for the assumed market; they are not legal advice. Verify with counsel.
+- Languages not proofread: <languages you couldn't proofread reliably, or "none">
 - Performance numbers are from one session on <env>; field data may differ.
 - Left behind: <test data that couldn't be deleted, or "nothing">
 ```
@@ -117,6 +136,7 @@ Write `<out>/<runId>/findings.json` so a later run (or another agent) can compar
   "finishedAt": "2026-11-24T16:12:00+01:00",
   "commit": "a1b2c3d",
   "context": "mobile-first; drag is the only intended input",
+  "focus": "all",
   "persona": "small-shop owner, first visit",
   "tasks": ["sign up", "add first product", "share store link"],
   "verdict": "Fix first",

@@ -1,7 +1,7 @@
 ---
 name: ux-review
-description: Brutal, evidence-based UX review of a live web app. Drives the real app in Chrome like a first-time user, walks the core tasks, sweeps every screen against a 15-category framework (Nielsen heuristics, WCAG 2.2 AA, Core Web Vitals, a strict copy standard and an AI-slop check), then writes a report with a 0-10 score and pass/fail per category, an overall verdict, copy rewrites and action items ranked Critical / High / Medium / Low. Use when the user runs /ux-review, asks for a UX review, UX audit, usability review, design critique, heuristic evaluation, copy review of an app, or wants to know what makes their app feel unfinished. Requires Claude in Chrome (or another browser tool that can navigate, click, type, screenshot and run JavaScript).
-argument-hint: "app=<url> env=<local|dev|staging|prod> [persona=...] [tasks=...] [depth=quick|full]"
+description: Brutal, evidence-based UX review of a live web app. Drives the real app in Chrome like a first-time user, walks the core tasks, sweeps every screen against a 15-category framework (Nielsen heuristics, WCAG 2.2 AA, Core Web Vitals, a strict copy standard, an AI-slop check and legal basics), then writes a report with a 0-10 score and pass/fail per category, an overall verdict, copy rewrites and action items ranked Critical / High / Medium / Low. Use when the user runs /ux-review, asks for a UX review, UX audit, usability review, design critique, heuristic evaluation, copy or microcopy review, legal or privacy-copy check of an app, or wants to know what makes their app feel unfinished. Requires Claude in Chrome (or another browser tool that can navigate, click, type, screenshot and run JavaScript).
+argument-hint: "app=<url> env=<local|dev|staging|prod> [persona=...] [tasks=...] [depth=quick|full] [focus=all|copy]"
 ---
 
 # ux-review
@@ -18,8 +18,9 @@ You review. You never change the app's code or settings.
 | `env` | yes | `local`, `dev`, `staging` or `prod`. Sets what you may do (see Hard rules 2) |
 | `persona` | no | Who the user is, e.g. "freelance designer, first visit, on a phone". Default: inferred from the landing page; state your assumption in the report |
 | `tasks` | no | The jobs the user came to do, e.g. "sign up; create a project; invite a teammate". Default: inferred, top 3 |
-| `context` | no | What the owner has decided the product is and isn't, e.g. "mobile-first; drag is the only intended input" or "desktop-only admin tool". Used to scope findings (see Judge step 4) |
+| `context` | no | What the owner has decided the product is and isn't, e.g. "mobile-first; drag is the only intended input" or "desktop-only admin tool". Used to scope findings (see Judge step 5) |
 | `scope` | no | `all` (default) or a list of areas/URLs to focus on |
+| `focus` | no | `all` (default) or `copy`: only the words and the legal pages (see [Copy-only runs](#copy-only-runs)) |
 | `depth` | no | `full` (default, up to 25 screens) or `quick` (cold open, the top task, up to 6 screens) |
 | `config` | no | Path to a local env file with app test credentials (see [references/config.example.env](references/config.example.env)). Without it, review only what a signed-out visitor can reach, unless the browser is already signed in |
 | `hosts` | no | Extra allowed hosts, comma-separated. The host of `app` is always allowed |
@@ -53,6 +54,7 @@ Example:
 Ask these on every screen. A "no" is a finding.
 
 - **Obvious?** Would a first-time user know what this is, what it's for and what to do next within 5 seconds, without reading help text?
+- **Wordless?** Delete every instruction, hint and help paragraph in your head. Can the user still act? If not, the design is broken and the text is a bandage.
 - **Necessary?** Can anything on this screen be removed, merged or hidden until needed without losing anything? Every extra element taxes every user, every visit.
 - **Fast?** Does it respond in under 100 ms and finish loading in under a second, or at least *feel* like it does?
 - **Human?** Does the copy sound like a smart person talking to another person, or like a template, a lawyer or an AI?
@@ -80,6 +82,15 @@ Ask these on every screen. A "no" is a finding.
 4. **Project.** If `repo` is given, record the commit and branch (`git rev-parse --short HEAD`, `git branch --show-current`).
 5. **Previous run.** If `<out>` holds an earlier `findings.json` for the same `app`, load it. You will report what got fixed, what is still open and what is new.
 
+### Copy-only runs
+
+With `focus=copy`, review only the words and the legal pages, faster:
+
+- Run steps 0, 1, 2, 3, 4, 6, 7 and 8. Skip step 5 (device and input passes).
+- Step 3: walk the tasks only to reach the states that have their own text (errors, empty states, confirmations, success, limits). Of the break-it list, do only what reveals messages: submit empty, bad input. Skip the step and click counts.
+- Step 4: do items 1, 2, 7 and 8 (text, P7, legal pages, source strings). Skip visual checks and probes P3 and P4, but keep the accessible names P7 collects: they're copy too.
+- Score only COPY, TRUST (limited to consent, privacy, legal basics and honest claims) and SLOP (copy signs only). Mark the rest `Not tested (focus=copy)`. The verdict and overall score then cover the words only, and the report's title says "Copy review".
+
 ### 1. Cold open (before you learn anything)
 
 You can only be a first-time user once. Do this before exploring.
@@ -88,6 +99,7 @@ You can only be a first-time user once. Do this before exploring.
 2. Navigate to `app`. Take a screenshot as soon as anything renders, and another once it settles.
 3. **Write down, before scrolling:** what you think this product is, who it's for, and what you'd click first. Then compare that with what it actually is once you know. Any gap is a FIRST finding.
 4. Run probe P2 (performance) and record the numbers.
+5. Run probe P8 (privacy) before touching anything, including a consent banner. If there is a banner, judge it (is Reject as easy as Accept?), choose the most privacy-preserving option (Reject, or Only necessary; never Accept), reload, and run P8 again. You'll compare both readings with the privacy policy in the sweep.
 
 ### 2. Map
 
@@ -109,11 +121,13 @@ For each task, do it like a real user would, the obvious way first:
 For every mapped screen, check each framework category (see [references/framework.md](references/framework.md)):
 
 1. Read all visible text (`get_page_text`). Check it against [references/copy-standard.md](references/copy-standard.md): buttons, headings, labels, placeholders, empty states, errors, toasts, tooltips, emails you received, page titles.
-2. Check visual hierarchy, spacing, alignment and consistency against the screens you've already seen.
-3. Check every state you can reach: hover, focus, active, disabled, loading, empty, error, success.
-4. Run probes P3 (accessibility) and P4 (contrast) on each distinct screen.
-5. Read console errors and failed network requests (status ≥ 400) for allowed hosts. A console error the user can't see is Low; one that breaks something they can see takes that symptom's severity.
-6. If `repo` is given, grep it for user-facing strings of states you couldn't trigger (errors, empty states, emails, notifications) and review those too, marked `source-only`.
+2. Run probe P7 on the screen and on each dialog or state with its own text. Append its strings to `<out>/<runId>/strings.md` under the screen name, and record the word counts for Measurements. Apply the delete test and the punch rules from the copy standard.
+3. Check visual hierarchy, spacing, alignment and consistency against the screens you've already seen.
+4. Check every state you can reach: hover, focus, active, disabled, loading, empty, error, success.
+5. Run probes P3 (accessibility) and P4 (contrast) on each distinct screen.
+6. Read console errors and failed network requests (status ≥ 400) for allowed hosts. A console error the user can't see is Low; one that breaks something they can see takes that symptom's severity.
+7. **Legal pages.** Open the imprint, privacy policy, terms and cookie notice on allowed hosts (one linked elsewhere is recorded, not followed). Check them against TRUST's legal basics in the framework, and compare the policy's claims and named third parties with both P8 readings.
+8. If `repo` is given, grep it for user-facing strings of states you couldn't trigger (errors, empty states, emails, notifications) and review those too, marked `source-only`.
 
 ### 5. Device and input passes
 
@@ -125,12 +139,13 @@ For every mapped screen, check each framework category (see [references/framewor
 
 1. **Write the findings** in the shape in [references/report-template.md](references/report-template.md). Each one gets an ID (`COPY-04`), a category, a severity, where, the evidence, why it hurts the user, the fix, and the effort (S/M/L).
 2. **Group by root cause.** The same problem on 12 screens is **one** finding with 12 locations, and its severity goes up a level if it's everywhere.
-3. **Assign severity** using the definitions in the framework. When in doubt between two levels, ask: "How many users hit this, how often, and what does it cost them?"
-4. **Respect the owner's scope.** If `context` says a platform or input method is deliberately out of scope (e.g. "mobile-first; drag is the only intended input"), a finding that only affects that platform or input is still reported, tagged `owner-scope`, capped at Medium, and says which standard it misses (e.g. WCAG 2.5.7) so the owner decides with eyes open. It doesn't drive the verdict. If the owner gives this context after a run, re-rate those findings and update the report rather than starting over.
-5. **Score each category** from 0 to 10 with the rubric. Apply the pass rule exactly. Categories you couldn't reach are `Not tested`, with the reason, and don't count towards the overall score.
-6. **Verdict.** Work out the overall score and verdict with the framework's formula.
-7. **Top 5.** Pick the 5 fixes that would change how the product feels the most, not just the 5 most severe.
-8. **Comparison.** If a previous run was loaded, mark each old finding `fixed`, `still open` or `regressed`, and each new one `new`.
+3. **Cross-screen copy pass.** Read `strings.md` end to end in one go. Build the glossary (each core concept and every name it's given), look for contradictions between screens and between what the text says and what the app did, and proofread everything in the page's language. These are COPY findings (see Consistency and contradictions in the copy standard).
+4. **Assign severity** using the definitions in the framework. When in doubt between two levels, ask: "How many users hit this, how often, and what does it cost them?"
+5. **Respect the owner's scope.** If `context` says a platform or input method is deliberately out of scope (e.g. "mobile-first; drag is the only intended input"), a finding that only affects that platform or input is still reported, tagged `owner-scope`, capped at Medium, and says which standard it misses (e.g. WCAG 2.5.7) so the owner decides with eyes open. It doesn't drive the verdict. If the owner gives this context after a run, re-rate those findings and update the report rather than starting over.
+6. **Score each category** from 0 to 10 with the rubric. Apply the pass rule exactly. Categories you couldn't reach are `Not tested`, with the reason, and don't count towards the overall score.
+7. **Verdict.** Work out the overall score and verdict with the framework's formula.
+8. **Top 5.** Pick the 5 fixes that would change how the product feels the most, not just the 5 most severe.
+9. **Comparison.** If a previous run was loaded, mark each old finding `fixed`, `still open` or `regressed`, and each new one `new`.
 
 ### 7. Cleanup
 
@@ -140,6 +155,6 @@ For every mapped screen, check each framework category (see [references/framewor
 ### 8. Write and return
 
 1. Write `<out>/<runId>/report.md` using [references/report-template.md](references/report-template.md).
-2. Write `<out>/<runId>/findings.json` as described in the template.
+2. Write `<out>/<runId>/findings.json` as described in the template. Keep `strings.md` next to them: it's the inventory the next run's copy pass compares against.
 3. If `<out>` is inside a git repo and not gitignored, say so (screenshots can contain private data). Don't edit `.gitignore` yourself.
 4. Return to the caller only: the verdict, the overall score, the pass/fail count across categories, the Critical and High counts, the top 5 fixes in one line each, and the report path. Then offer, in one line, to publish the report as a shareable page if the session has a page or artifact tool.

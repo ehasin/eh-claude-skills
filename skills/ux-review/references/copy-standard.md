@@ -11,6 +11,30 @@ Words are interface. Every string is either helping the user act or getting in t
 5. **One name for one thing.** Pick a term and use it everywhere: if it's a "project" on one screen, it's not a "workspace" on the next.
 6. **Never blame the user.** Errors are the product's problem to explain and help fix.
 7. **Be honest.** No exaggeration, fake urgency or claims the product can't back up.
+8. **The design speaks first.** Text that explains how to use a screen is a sign the screen failed.
+
+## Text load: words standing in for design
+
+The best interface needs almost no words. Apply the **delete test** to every screen and dialog: imagine every instruction, hint, tooltip and help paragraph gone. Can the persona still do the task?
+
+- **No:** the screen depends on its text. File one COPY finding for the screen, quote the text it leans on, and make the fix a design change (show the state, make the control say what it does, use defaults, teach by doing), not a rewrite. High on a core screen or in onboarding; Medium elsewhere.
+- **Yes, but the text is still there:** it's noise that every user pays for on every visit. Cut it. Medium if it's a block of more than one sentence, Low for a single line.
+- Rules, tutorials and "how it works" text that the product only works with are the same failure, wherever they live.
+
+Probe P7 counts the words per screen. On a task screen (not a content, legal or marketing page), more than about 40 words of explanation, or any block over 2 sentences, is a reason to run the delete test hard. A count is a pointer, never a finding by itself.
+
+## Punch
+
+UI copy is scanned, not read. Write so the first two words carry the meaning.
+
+- **Front-load.** The word the user is scanning for comes first: "Delete project?" not "Are you sure you want to delete this project?". "Saved 2 min ago" not "Your changes were successfully saved 2 minutes ago".
+- **One idea per sentence.** UI sentences stay under 15 words, and a block holds at most 2 sentences. Over 20 words is a finding.
+- **Active and concrete.** A real subject and a real verb: "We couldn't save your changes", not "Saving could not be completed". Verbs, not nouns: "Configure alerts", not "Alert configuration".
+- **Say it once.** If the heading, the body and the button say the same thing, keep the one that does the job and cut the rest.
+- **No throat-clearing.** No "Here you can…", "This page shows…", "Welcome to…", "In this section…". Start with the content.
+- **No hedges or filler.** Cut: simply · just · easily · quickly (as filler) · basically · actually · very · really · please note · note that · in order to · at this time · currently (when obvious) · feel free to · make sure to · it's important to · allows you to · enables you to · lets you (when the verb alone works) · utilize · functionality · kindly · stacked "please".
+
+Flabby copy is Medium per root cause, and High when it runs through the landing page, onboarding or a core flow. Every punch finding comes with the tightened rewrite.
 
 ## Rules by element
 
@@ -46,7 +70,7 @@ Formula: **what happened + what to do next**, in plain words, next to the proble
 
 ### Onboarding and help text
 - Show, don't tell: one sentence, then let the user do it.
-- If a screen needs a paragraph of help text to be understood, the screen is the problem; file it under the relevant category too.
+- If a screen needs a paragraph of help text to be understood, the screen is the problem: it fails the delete test (see Text load).
 
 ### Confirmation dialogs
 - Title asks the real question with consequences: "Delete 'Q4 Plan'? This removes 12 files for everyone." Not "Are you sure?".
@@ -55,13 +79,27 @@ Formula: **what happened + what to do next**, in plain words, next to the proble
 - Subject says what happened or what's needed: "Dana commented on Q4 Plan". Not "You have a new notification from Acme!".
 - From name is recognisable; an unsubscribe or settings link is present.
 
+### Legal pages (imprint, privacy policy, terms, cookie notice)
+- Still copy: same language as the UI, headings, short paragraphs, a date of the last update.
+- A plain-language summary at the top of the privacy policy: what's collected, why, who else gets it, how to delete it. A wall of legalese with no summary is Medium.
+- What they say must match what the product does. See TRUST in the framework for what to check.
+
+## Consistency and contradictions
+
+Judge these across the whole app, not screen by screen. Keep the string inventory (probe P7, one section per screen) and read it end to end before writing findings.
+
+- **Glossary.** List each core concept (the things the user creates, the currency, the main actions, the plan names) and every name used for it, with where. More than one name for a core concept is High; for a minor one, Medium. The report carries the glossary with the one name to keep.
+- **Contradictions.** Two places that state different facts: limits, prices, counts, rules, dates, what's free. Help or rules text that doesn't match what the product actually does. Promises the product breaks ("No ads" with ads, "Saved automatically" when it isn't, "Free" behind a paywall). High in a core flow; Critical when it's about price, data or consent; Medium elsewhere.
+- **Voice.** One form of address (in German, `du` or `Sie`, never both), one tone, one capitalisation style.
+- **Language.** The UI is in one language, the one `<html lang>` declares. Mixed languages on a screen, or a `lang` that doesn't match the text, is a finding.
+
 ## Mechanics
 
 - **Capitalisation:** sentence case for UI (buttons, headings, menus) unless the product has clearly chosen title case; either way, consistent. Mixed is a finding.
 - **Punctuation:** no full stops on buttons or one-line labels; no exclamation marks except for real celebration (once, rarely); no ALL CAPS for emphasis.
 - **Numbers and dates:** digits not words ("3 files"), localized formats, relative times where helpful ("2 min ago"), correct plurals ("1 file", "2 files").
-- **Spelling and grammar:** zero typos. One typo on a landing page or in a price is High.
-- **Consistency:** same term, same spelling, same tone everywhere (including emails and error pages).
+- **Spelling and grammar:** zero typos, judged in the page's own language and its conventions (German nouns capitalised, „quotes“, decimal comma). One typo on a landing page or in a price is High. Proofread the whole inventory once, slowly, at the end. If a language is one you can't proofread reliably, say so under "Coverage and limits" instead of guessing.
+- **Consistency:** same term, same spelling, same tone everywhere (including emails, error pages and accessible names that only screen readers hear).
 - **Length:** button labels 1-3 words; error messages 1-2 short sentences; tooltips one line.
 - **Reading level:** aim for what a busy 12-year-old would understand at a glance, unless the audience is truly specialist, and even then, no needless jargon.
 

@@ -1,6 +1,6 @@
 # Browser probes
 
-Run these with the browser's JavaScript tool (Claude in Chrome: `javascript_tool`) on the page being reviewed. P1–P5 are read-only: they measure, they never change the page. P6 only adds an overlay to your own tab. Each returns a small JSON object; record the numbers, not the raw dump.
+Run these with the browser's JavaScript tool (Claude in Chrome: `javascript_tool`) on the page being reviewed. All of them except P6 are read-only: they measure, they never change the page. P6 only adds an overlay to your own tab. Each returns a small JSON object; record the numbers, not the raw dump.
 
 Automated checks catch only part of the real problems. Treat a clean probe as "nothing obvious found", never as a pass on its own.
 
@@ -197,3 +197,85 @@ To run a probe inside it, wrap the probe so it uses the frame's window and docum
 Remove: `document.getElementById('uxr-mobile')?.remove()`
 
 If the app refuses to be framed (blank frame, or an `X-Frame-Options` / `frame-ancestors` error in the console), say "mobile not tested: window can't be resized and the app can't be framed".
+
+## P7: Text load and string inventory
+
+Run on every distinct screen and on every dialog or state with its own text (errors, empty states, confirmations). It counts the words, finds long blocks and long sentences, flags filler candidates, and returns the screen's strings with their role, including accessible names and placeholders that sighted users never read.
+
+```js
+(() => {
+  const vis = el => { const r = el.getBoundingClientRect(), s = getComputedStyle(el);
+    return r.width > 0 && r.height > 0 && s.visibility !== 'hidden' && s.display !== 'none' && s.opacity !== '0'; };
+  const roleOf = el => {
+    if (el.closest('button, summary, [role=button], [role=tab], [role=menuitem], [role=option]')) return 'button';
+    if (el.closest('a[href], [role=link]')) return 'link';
+    if (el.closest('h1, h2, h3, h4, h5, h6, [role=heading]')) return 'heading';
+    if (el.closest('label, legend, th, dt')) return 'label';
+    if (el.closest('[role=alert], [role=status], [aria-live]')) return 'status';
+    if (el.closest('nav, footer, [role=navigation], [role=contentinfo]')) return 'chrome';
+    return 'text';
+  };
+  const words = t => (t.match(/[\p{L}\p{N}][\p{L}\p{N}'’-]*/gu) || []).length;
+  const clip = (t, n = 160) => t.length > n ? t.slice(0, n) + '…' : t;
+  const flabRe = /\b(simply|just|easily|basically|actually|very|really|kindly|please note|note that|in order to|at this time|feel free to|make sure to|it'?s important to|allows you to|enables you to|lets you|utili[sz]e|functionality|here you can|this page (shows|lets)|welcome to)\b/gi;
+  const seen = new Map();
+  // Strings that differ only by numbers ("Row 1, column 2") collapse into one entry with a count; strings with no letters are skipped.
+  const add = (role, text) => { text = text.replace(/\s+/g, ' ').trim(); if (!/\p{L}/u.test(text)) return;
+    const k = role + '|' + text.replace(/\d+/g, '#'); if (seen.has(k)) seen.get(k).n++; else seen.set(k, { role, text, n: 1 }); };
+  const blocks = new Map();
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, { acceptNode: n => n.textContent.trim() ? 1 : 2 });
+  while (walker.nextNode()) {
+    const el = walker.currentNode.parentElement; if (!el || !vis(el)) continue;
+    const role = roleOf(el); add(role, walker.currentNode.textContent);
+    if (role === 'text' || role === 'status') {
+      const block = el.closest('p, li, dd, blockquote, td, [role=dialog], div') || el;
+      blocks.set(block, (blocks.get(block) || '') + ' ' + walker.currentNode.textContent);
+    }
+  }
+  document.querySelectorAll('[aria-label], [placeholder], [title], img[alt]').forEach(el => {
+    if (!vis(el)) return;
+    [['aria-label', 'a11y-name'], ['placeholder', 'placeholder'], ['title', 'tooltip'], ['alt', 'alt']]
+      .forEach(([a, r]) => { const v = el.getAttribute(a); if (v && v.trim() && v.trim() !== el.textContent.trim()) add(r, v); });
+  });
+  const strings = [...seen.values()];
+  const explain = [...blocks.values()].map(t => t.replace(/\s+/g, ' ').trim()).filter(Boolean);
+  const sentences = explain.flatMap(t => t.split(/(?<=[.!?])\s+/)).filter(s => words(s) > 20);
+  const flab = strings.flatMap(s => [...s.text.matchAll(flabRe)].map(m => `"${m[0]}" in ${s.role}: ${clip(s.text, 80)}`));
+  return {
+    screen: location.pathname + location.search + location.hash,
+    lang: document.documentElement.lang || null,
+    title: document.title,
+    description: document.querySelector('meta[name=description]')?.content || null,
+    words: { explanatory: explain.reduce((t, s) => t + words(s), 0), controls: strings.filter(s => /button|link/.test(s.role)).reduce((t, s) => t + words(s.text), 0),
+      all: strings.reduce((t, s) => t + words(s.text), 0) },
+    longBlocks: explain.filter(t => words(t) > 40 || t.split(/(?<=[.!?])\s+/).length > 2).map(t => `${words(t)}w: ${clip(t, 100)}`).slice(0, 10),
+    longSentences: sentences.map(s => `${words(s)}w: ${clip(s, 100)}`).slice(0, 10),
+    flabCandidates: [...new Set(flab)].slice(0, 20),
+    strings: strings.slice(0, 300).map(s => `${s.role}: ${clip(s.text)}${s.n > 1 ? ` (+${s.n - 1} like it)` : ''}`)
+  };
+})()
+```
+
+`words.explanatory` is running text outside controls, headings, labels and the nav and footer: the number to weigh against the delete test. `flabCandidates` are English pattern hits, not findings: judge each one in context, and for other languages read for the same things yourself. Append each screen's `strings` to `<out>/<runId>/strings.md` under a heading with the screen name. On long legal pages, keep only the headings and the summary in the inventory and read the rest with `get_page_text`.
+
+## P8: Privacy observation
+
+Run on the cold open before touching anything, including a consent banner, and again after choosing Reject (see the Run steps). It lists names only, never values, because cookie and storage values can be identifiers.
+
+```js
+(() => {
+  const site = h => h.split('.').slice(-2).join('.');
+  const keys = st => { try { return Object.keys(st).sort(); } catch (e) { return ['(not readable)']; } };
+  const hosts = performance.getEntriesByType('resource').map(r => { try { return new URL(r.name).hostname; } catch (e) { return null; } }).filter(Boolean);
+  return {
+    page: location.pathname,
+    thirdPartyHosts: [...new Set(hosts.filter(h => site(h) !== site(location.hostname)))].sort(),
+    cookies: document.cookie ? document.cookie.split(';').map(c => c.split('=')[0].trim()).sort() : [],
+    localStorage: keys(localStorage),
+    sessionStorage: keys(sessionStorage),
+    consentBannerVisible: !![...document.querySelectorAll('[class*=cookie i], [id*=cookie i], [class*=consent i], [id*=consent i], [aria-label*=cookie i]')].find(e => e.getBoundingClientRect().height > 0)
+  };
+})()
+```
+
+Limits: Claude in Chrome may return `[BLOCKED: …]` for cookies and sessionStorage; then report them as "not observable with this browser tool", not as empty. HttpOnly cookies never show up here, and `site()` is naive for domains like `.co.uk`. Cross-check third parties with the browser's network log (`read_network_requests`) and name each one by what it is (analytics, ads, fonts, maps, video, error tracking). The pre-consent reading is only valid on a first visit: if the browser already has this app's storage from earlier visits, say so and treat the result as `inferred`.
