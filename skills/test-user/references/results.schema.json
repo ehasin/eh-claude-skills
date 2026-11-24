@@ -1,0 +1,162 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/ehasin/eh-claude-skills/skills/test-user/results.schema.json",
+  "title": "test-user run results",
+  "type": "object",
+  "required": ["schemaVersion", "runId", "status", "startedAt", "finishedAt", "trigger", "project", "target", "preflight", "summary", "scenarios", "artifacts"],
+  "properties": {
+    "schemaVersion": { "const": "1.0" },
+    "runId": { "type": "string", "pattern": "^tu\\d{8}T\\d{6}$" },
+    "label": { "type": "string" },
+    "status": { "enum": ["passed", "failed", "blocked", "error"] },
+    "startedAt": { "$ref": "#/$defs/time" },
+    "finishedAt": { "$ref": "#/$defs/time" },
+    "durationSeconds": { "type": "number" },
+    "trigger": { "enum": ["manual", "agent"] },
+    "project": {
+      "type": "object",
+      "properties": {
+        "path": { "type": "string" },
+        "gitCommit": { "type": ["string", "null"] },
+        "gitBranch": { "type": ["string", "null"] },
+        "gitDirty": { "type": ["boolean", "null"] }
+      }
+    },
+    "target": {
+      "type": "object",
+      "required": ["allowedHosts"],
+      "properties": {
+        "baseUrl": { "type": "string" },
+        "allowedHosts": { "type": "array", "items": { "type": "string" } },
+        "scenarioFile": { "type": "string" }
+      }
+    },
+    "tester": {
+      "type": "object",
+      "properties": {
+        "account": { "type": "string", "description": "Masked, e.g. ab***yz@gmail.com" },
+        "identityVerified": { "type": "boolean" }
+      }
+    },
+    "preflight": {
+      "type": "object",
+      "required": ["cleanState"],
+      "properties": {
+        "identityVerified": { "type": "boolean" },
+        "hostsOk": { "type": "boolean" },
+        "cleanState": { "$ref": "#/$defs/cleanState" }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["total", "passed", "failed", "blocked", "skipped"],
+      "properties": {
+        "total": { "type": "integer" },
+        "passed": { "type": "integer" },
+        "failed": { "type": "integer" },
+        "blocked": { "type": "integer" },
+        "skipped": { "type": "integer" }
+      }
+    },
+    "scenarios": { "type": "array", "items": { "$ref": "#/$defs/scenario" } },
+    "artifacts": { "type": "array", "items": { "$ref": "#/$defs/artifact" } },
+    "postCleanup": { "$ref": "#/$defs/cleanState" },
+    "issues": { "type": "array", "items": { "type": "string" }, "description": "Problems with the run itself, not the app" }
+  },
+  "$defs": {
+    "time": { "type": "string", "format": "date-time", "description": "ISO 8601 with offset, from the shell" },
+    "status": { "enum": ["passed", "failed", "blocked", "skipped"] },
+    "evidence": {
+      "type": "object",
+      "required": ["type", "path"],
+      "properties": {
+        "type": { "enum": ["screenshot", "gif", "text"] },
+        "path": { "type": "string" },
+        "note": { "type": "string" }
+      }
+    },
+    "cleanState": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": { "enum": ["clean", "cleaned", "dirty", "unknown"] },
+        "checks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "check": { "type": "string" },
+              "passed": { "type": "boolean" },
+              "actual": { "type": "string" }
+            }
+          }
+        },
+        "leftoversFrom": { "type": ["string", "null"], "description": "runId whose artifacts were found" },
+        "note": { "type": "string" }
+      }
+    },
+    "step": {
+      "type": "object",
+      "required": ["n", "action", "status"],
+      "properties": {
+        "n": { "type": "integer" },
+        "action": { "type": "string" },
+        "expected": { "type": "string" },
+        "actual": { "type": "string" },
+        "status": { "$ref": "#/$defs/status" },
+        "at": { "$ref": "#/$defs/time" },
+        "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence" } }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "required": ["id", "title", "status"],
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "tags": { "type": "array", "items": { "type": "string" } },
+        "status": { "$ref": "#/$defs/status" },
+        "reason": { "type": "string", "description": "Why it failed, was blocked or skipped" },
+        "startedAt": { "$ref": "#/$defs/time" },
+        "finishedAt": { "$ref": "#/$defs/time" },
+        "email": { "type": "string", "description": "Masked address used" },
+        "steps": { "type": "array", "items": { "$ref": "#/$defs/step" } },
+        "expectations": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "expect": { "type": "string" },
+              "met": { "type": ["boolean", "null"] },
+              "actual": { "type": "string" }
+            }
+          }
+        },
+        "consoleErrors": { "type": "array", "items": { "type": "string" } },
+        "networkFailures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "method": { "type": "string" },
+              "url": { "type": "string" },
+              "status": { "type": "integer" }
+            }
+          }
+        },
+        "evidence": { "type": "array", "items": { "$ref": "#/$defs/evidence" } }
+      }
+    },
+    "artifact": {
+      "type": "object",
+      "required": ["type", "description", "createdBy", "cleanup"],
+      "properties": {
+        "type": { "enum": ["app-account", "app-data", "email", "other"] },
+        "description": { "type": "string", "description": "No secrets; masked addresses" },
+        "createdBy": { "type": "string", "description": "Scenario id" },
+        "cleanup": { "enum": ["pending", "cleaned", "failed", "manual", "not-needed"] },
+        "note": { "type": "string" }
+      }
+    }
+  }
+}
