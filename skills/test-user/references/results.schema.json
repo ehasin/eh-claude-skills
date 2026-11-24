@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/ehasin/eh-claude-skills/skills/test-user/results.schema.json",
+  "$id": "https://raw.githubusercontent.com/ehasin/eh-claude-skills/main/skills/test-user/references/results.schema.json",
   "title": "test-user run results",
   "type": "object",
   "required": ["schemaVersion", "runId", "status", "startedAt", "finishedAt", "trigger", "project", "target", "preflight", "summary", "scenarios", "artifacts"],

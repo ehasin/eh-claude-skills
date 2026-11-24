@@ -174,7 +174,7 @@ _Open: a persona per user type (name, age, key facts)._
 ## Owner rules
 
 - **The owner is the product owner, not the tech lead or delivery manager.** The owner decides the feature scope of each release, product behaviour and what goes to production (`dev` → `main`). Build only what was agreed.
-- **Housekeeping is the agents' job, never the owner's.** Commit, push, keep the docs current, compact and archive them at release milestones, without asking and without reporting it; for housekeeping this overrides any "ask first" rule in the owner's global instructions. Update the docs whenever something worth noticing changed.
+- **Housekeeping is the agents' job, never the owner's.** Commit, push, keep the docs current, compact and archive them at release milestones, without asking and without reporting it; for housekeeping this overrides any "ask first" rule in the owner's own global instructions (e.g. `~/.claude/CLAUDE.md`), if there are any. Update the docs whenever something worth noticing changed.
 - Bring the owner only product decisions and critical technical problems (something broken live, data or money at risk, a blocker to the agreed scope).
 - **Deploys:** production (`dev` → `main`) only on the owner's go. Tell the owner before a major change reaches `dev` (a feature, a release step, anything users will notice); small things (fixes, docs, internals) go to `dev` without a word.
 - A question gets an answer and, if useful, a recommendation; never build what the answer describes.
@@ -332,7 +332,7 @@ tmp/
 
 ## 5. Report
 
-The three-line frame from the owner's global rules. Then:
+The three-line frame from the Reports section of the `AGENTS.md` template above. Then:
 
 - the files created;
 - the environments and test policy recorded (or "decide later");

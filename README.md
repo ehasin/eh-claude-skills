@@ -8,6 +8,17 @@
 | [`test-user`](#test-user) | Tests your app as a real user in Chrome: sign-up, sign-in, email verification, Google sign-in, with JSON results |
 | [`ux-review`](#ux-review) | Brutal UX review of a live app: 15 categories, pass/fail and scores, copy rewrites, a glossary, legal basics, action items by severity |
 
+## Install
+
+Copy a skill's folder from `skills/` into `~/.claude/skills/` (all projects) or a project's `.claude/skills/` (one project). Each skill's section below says what else it needs.
+
+## Security and data
+
+- **No secrets in this repo.** The skills are generic. Everything personal (test accounts, passwords, Chrome device ids) comes from a config file you keep outside your repos; `config.example.env` files hold placeholders only.
+- **The skills send nothing anywhere themselves.** No servers, no telemetry, no installs. They drive your own browser on the hosts you allow, and write files into your project. The only code is the browser probes `ux-review` runs in its own tab; they measure the page and never change the app.
+- **Their output can be private.** Screenshots, string inventories and test results can show real data from the app under test. Keep `test-results/` and `ux-review/` gitignored, as the setup steps say.
+- **Credentials are never echoed.** Generated passwords go only to a local secrets file, account addresses are masked in results, and neither skill types a Google password (`ux-review` also refuses Apple and Microsoft ones).
+
 ## `init-new-coding-project`
 
 ### The problem it solves
@@ -50,9 +61,9 @@ A brand-new session can read the current state from these files in seconds. Whic
 - **Developers** running a real project across many short sessions or several agents, who want a greppable source of truth instead of chat history.
 - **Product owners and vibe coders** who direct the work without being engineers, and want Claude to handle the technical steps and bring them only product decisions.
 
-### Install
+### Run
 
-Copy `skills/init-new-coding-project/` into `~/.claude/skills/` (all projects) or a project's `.claude/skills/` (one project), then run `/init-new-coding-project` in an empty project folder.
+Run `/init-new-coding-project [name]` in an empty project folder.
 
 The default owner is the author. Pick **Someone else** at the owner question, or edit the default line in `SKILL.md` to make yourself the default.
 
@@ -155,10 +166,6 @@ For a faster pass on the words and legal pages only:
 ```
 
 Optional: `context="mobile-first; drag is the only intended input"` to tell it what's out of scope on purpose (such findings are still reported, but capped at Medium and kept out of the verdict), `depth=quick` for a short pass, `scope=` to focus on some areas, `repo=<path>` to also review error and empty-state copy it couldn't trigger.
-
-## Install
-
-Copy a skill's folder from `skills/` into `~/.claude/skills/` (all projects) or a project's `.claude/skills/` (one project).
 
 ## License
 
