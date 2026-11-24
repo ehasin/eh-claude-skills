@@ -18,6 +18,7 @@ You review. You never change the app's code or settings.
 | `env` | yes | `local`, `dev`, `staging` or `prod`. Sets what you may do (see Hard rules 2) |
 | `persona` | no | Who the user is, e.g. "freelance designer, first visit, on a phone". Default: inferred from the landing page; state your assumption in the report |
 | `tasks` | no | The jobs the user came to do, e.g. "sign up; create a project; invite a teammate". Default: inferred, top 3 |
+| `context` | no | What the owner has decided the product is and isn't, e.g. "mobile-first; drag is the only intended input" or "desktop-only admin tool". Used to scope findings (see Judge step 4) |
 | `scope` | no | `all` (default) or a list of areas/URLs to focus on |
 | `depth` | no | `full` (default, up to 25 screens) or `quick` (cold open, the top task, up to 6 screens) |
 | `config` | no | Path to a local env file with app test credentials (see [references/config.example.env](references/config.example.env)). Without it, review only what a signed-out visitor can reach, unless the browser is already signed in |
@@ -40,6 +41,7 @@ Example:
 2. **Respect the environment.**
    - `local` / `dev` / `staging` with `writes=yes`: you may sign up, create, edit and delete **your own** test data. Name everything you create `UXR <runId>` so it can be found and removed.
    - `prod`, or `writes=no`: observe only. Fill forms to see validation, but don't submit anything that creates, sends, buys or deletes (search and filters are fine). Mark what you couldn't reach as "Not tested (read-only)".
+   - **Using the app can write by itself.** Games and editors often autosave, and some post publicly on their own: a score on a public leaderboard, a public profile, an activity feed. Before your first real interaction on `prod`, look for such signs (a leaderboard, "public", "shared", sync calls in the network log). If using the app would publish something under a visible name, ask the person first; if no one can answer, don't interact and mark that part "Not tested (would publish)". Whatever you do create goes under "Left behind" with how to remove it.
 3. **No real money, no real people.** No purchases outside a provider's test mode. Never invite, message or email a real address. Never click "Delete account" or anything irreversible except on your own test data in a non-prod env.
 4. **Credentials stay local.** Read them from `config` only. Type them only into the app's own sign-in form on an allowed host. Never echo them in chat, the report or the findings. Never type a Google, Apple or Microsoft password. Captcha, 2-step or "verify it's you" means that area is `blocked`: note it and move on.
 5. **No browser dialogs.** Don't trigger `alert` / `confirm` / `prompt` deliberately. If one appears by itself, that is a finding (native dialogs are a craft failure). If the browser stops responding, say so and stop.
@@ -82,7 +84,7 @@ Ask these on every screen. A "no" is a finding.
 
 You can only be a first-time user once. Do this before exploring.
 
-1. Set the desktop viewport (1440×900). Before navigating, install the performance observer (probe P1 in [references/probes.md](references/probes.md)) if the tool lets you run scripts before load; otherwise navigate, then install it and reload.
+1. Set the desktop viewport (1440×900), then check `innerWidth` / `innerHeight` / `devicePixelRatio` with a script. Window resizing silently does nothing when the browser window is maximised, so record the viewport you actually got and use that in the report. Before navigating, install the performance observer (probe P1 in [references/probes.md](references/probes.md)) if the tool lets you run scripts before load; otherwise navigate and install it straight away (its observers are buffered, so the load is still captured; no reload needed).
 2. Navigate to `app`. Take a screenshot as soon as anything renders, and another once it settles.
 3. **Write down, before scrolling:** what you think this product is, who it's for, and what you'd click first. Then compare that with what it actually is once you know. Any gap is a FIRST finding.
 4. Run probe P2 (performance) and record the numbers.
@@ -115,7 +117,7 @@ For every mapped screen, check each framework category (see [references/framewor
 
 ### 5. Device and input passes
 
-1. **Mobile.** Resize to 390×844 (keep the same tab). Repeat the cold-open screen, the top task and the 3 most important screens. Check reachability, tap targets, text size, horizontal scroll, sticky elements covering content, and keyboard covering inputs.
+1. **Mobile.** Resize to 390×844 (keep the same tab) and check `innerWidth`. If it didn't change (maximised window), use probe P6: it lays a 390×844 same-origin frame of the app over the page, which gets the real mobile layout and lets probes run inside it; remove the frame afterwards. Repeat the cold-open screen, the top task and the 3 most important screens. Check reachability, tap targets, text size, horizontal scroll, sticky elements covering content, and keyboard covering inputs. Touch gestures (drag, swipe, long-press) can't be tested this way: say so under "Coverage and limits".
 2. **Keyboard only.** On the landing screen and one form-heavy screen, Tab through everything. Use probe P5 after each Tab to see where focus is and whether it's visible. Can you finish the task without a mouse? Is the order logical? Is there a skip link? Does Esc close overlays?
 3. **Perceived speed.** For the key actions in each task, note how long it takes until something visibly responds and until it's done. Use probe P2's interaction numbers where available.
 
@@ -124,10 +126,11 @@ For every mapped screen, check each framework category (see [references/framewor
 1. **Write the findings** in the shape in [references/report-template.md](references/report-template.md). Each one gets an ID (`COPY-04`), a category, a severity, where, the evidence, why it hurts the user, the fix, and the effort (S/M/L).
 2. **Group by root cause.** The same problem on 12 screens is **one** finding with 12 locations, and its severity goes up a level if it's everywhere.
 3. **Assign severity** using the definitions in the framework. When in doubt between two levels, ask: "How many users hit this, how often, and what does it cost them?"
-4. **Score each category** from 0 to 10 with the rubric. Apply the pass rule exactly. Categories you couldn't reach are `Not tested`, with the reason, and don't count towards the overall score.
-5. **Verdict.** Work out the overall score and verdict with the framework's formula.
-6. **Top 5.** Pick the 5 fixes that would change how the product feels the most, not just the 5 most severe.
-7. **Comparison.** If a previous run was loaded, mark each old finding `fixed`, `still open` or `regressed`, and each new one `new`.
+4. **Respect the owner's scope.** If `context` says a platform or input method is deliberately out of scope (e.g. "mobile-first; drag is the only intended input"), a finding that only affects that platform or input is still reported, tagged `owner-scope`, capped at Medium, and says which standard it misses (e.g. WCAG 2.5.7) so the owner decides with eyes open. It doesn't drive the verdict. If the owner gives this context after a run, re-rate those findings and update the report rather than starting over.
+5. **Score each category** from 0 to 10 with the rubric. Apply the pass rule exactly. Categories you couldn't reach are `Not tested`, with the reason, and don't count towards the overall score.
+6. **Verdict.** Work out the overall score and verdict with the framework's formula.
+7. **Top 5.** Pick the 5 fixes that would change how the product feels the most, not just the 5 most severe.
+8. **Comparison.** If a previous run was loaded, mark each old finding `fixed`, `still open` or `regressed`, and each new one `new`.
 
 ### 7. Cleanup
 

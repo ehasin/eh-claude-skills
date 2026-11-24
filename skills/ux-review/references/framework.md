@@ -13,6 +13,8 @@
 
 Raise a level when an issue is everywhere, on the first screen a new user sees, or in the money path (sign-up, checkout, upgrade). Lower a level only if the affected screen is rarely seen **and** the cost is small.
 
+**Owner scope.** When the owner has declared a platform or input method out of scope (the `context` input), findings that only affect it are tagged `owner-scope`, capped at Medium and don't drive the verdict. They are still reported with the standard they miss. Everything else in this framework applies as written.
+
 ## Scoring a category (0-10)
 
 | Score | Means |
@@ -29,7 +31,7 @@ Raise a level when an issue is everywhere, on the first screen a new user sees, 
 
 **Overall score (0-100):** the weighted average of the tested categories' scores × 10, rounded. Weights: FLOW 3; FIRST, COPY, VIS, FEED, ERR, PERF, A11Y 2; all others 1.
 
-**Verdict:**
+**Verdict** (`owner-scope` findings don't count here):
 - **Not ready**: any Critical anywhere.
 - **Fix first**: no Critical, but at least one category fails.
 - **Ship it**: every tested category passes.

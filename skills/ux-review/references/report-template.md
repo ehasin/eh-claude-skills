@@ -8,7 +8,8 @@ Write `<out>/<runId>/report.md` in this shape. Keep it scannable: tables and sho
 <app url> · <env> · <date, from the shell> · run <runId>
 Persona: <persona> (given | assumed)
 Tasks: <task 1>; <task 2>; <task 3> (given | assumed)
-Covered: <N> screens · desktop 1440×900 · mobile 390×844 · keyboard pass <yes/partial/no> · signed in <yes/no>
+Context: <owner's context, or "none given">
+Covered: <N> screens · desktop <actual viewport, CSS px, and DPR> · mobile <390×844 by resize | by frame (layout only)> · keyboard pass <yes/partial/no> · signed in <yes/no>
 Build: <commit and branch, if repo given>
 
 ## Verdict: <Not ready | Fix first | Ship it> · <score>/100
@@ -52,7 +53,7 @@ Grouped by category, in framework order. Within a category, most severe first.
 - **Fix:** Say the job and the result: "Turn customer emails into tickets automatically."
 - **Effort:** S
 
-<Repeat for every finding. Tags after the severity where they apply: `inferred`, `source-only`, `verify on prod build`, `new`, `still open`, `regressed`.>
+<Repeat for every finding. Tags after the severity where they apply: `inferred`, `source-only`, `dom-only` (read from the page's markup, state not reached), `owner-scope`, `verify on prod build`, `new`, `still open`, `regressed`.>
 
 ## Copy rewrites
 
@@ -115,6 +116,7 @@ Write `<out>/<runId>/findings.json` so a later run (or another agent) can compar
   "startedAt": "2026-11-24T15:30:00+01:00",
   "finishedAt": "2026-11-24T16:12:00+01:00",
   "commit": "a1b2c3d",
+  "context": "mobile-first; drag is the only intended input",
   "persona": "small-shop owner, first visit",
   "tasks": ["sign up", "add first product", "share store link"],
   "verdict": "Fix first",

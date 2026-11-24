@@ -132,7 +132,7 @@ A category passes only with a score of 8 or more and no Critical or High finding
 ### Safe by default
 
 - Only the app's own host is opened; other links are recorded, not followed.
-- On `prod` it only observes: no sign-ups, purchases, messages or deletes.
+- On `prod` it only observes: no sign-ups, purchases, messages or deletes. If merely using the app would publish something (a score on a public leaderboard), it asks first.
 - Test data it creates elsewhere is named `UXR <runId>` and cleaned up.
 - Credentials come from a local env file and are never echoed. It never types a Google, Apple or Microsoft password.
 - It reviews and never changes the app.
@@ -145,7 +145,7 @@ It needs [Claude in Chrome](https://claude.ai/chrome) connected. To review scree
 /ux-review app=https://staging.example.com env=staging persona="small-shop owner, first visit" tasks="sign up; add first product"
 ```
 
-Optional: `depth=quick` for a short pass, `scope=` to focus on some areas, `repo=<path>` to also review error and empty-state copy it couldn't trigger.
+Optional: `context="mobile-first; drag is the only intended input"` to tell it what's out of scope on purpose (such findings are still reported, but capped at Medium and kept out of the verdict), `depth=quick` for a short pass, `scope=` to focus on some areas, `repo=<path>` to also review error and empty-state copy it couldn't trigger.
 
 ## Install
 
